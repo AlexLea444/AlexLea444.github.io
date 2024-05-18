@@ -52,11 +52,6 @@ class Trail {
         }
     }
 
-    // Rust-style iterator (helpful for drawing trail)
-    iter() {
-        return new TrailIterator(this);
-    }
-  
     // Function to search for a value in the queue
     search(location) {
         for (let segment of this) {
