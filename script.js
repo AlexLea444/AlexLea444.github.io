@@ -312,6 +312,7 @@ function resetGame() {
     player = new Player(numCols, numRows);
     trail = new Trail(new TrailSegment(player.location()));
     apple.moveNotTo(trail);
+    resetTouches();
     draw();
 }
 
@@ -338,14 +339,14 @@ function updateVelocity(direction) {
         }
     } else if (direction === 'Underflow') {
         // No input from input list, so we can check if the user is swiping
-        const new_direction = resolveDirection(touchStart, touchCurr);
-        if (validInputs.indexOf(new_direction) !== -1) {
+        const newDirection = resolveDirection(touchStart, touchCurr);
+        if (validInputs.indexOf(newDirection) !== -1) {
             // Update starting points if a significant change was detected
             // Allows for finger held on screen, and prevents repeat inputs
             touchStart.x = touchCurr.x;
             touchStart.y = touchCurr.y;
         }
-        updateVelocity(new_direction);
+        updateVelocity(newDirection);
     }
 }
 
@@ -408,6 +409,21 @@ let touchEnd = {
     x: null,
     y: null,
 }
+let touchVelocity = {
+    x: null,
+    y: null,
+}
+
+function resetTouches() {
+    touchStart.x = null;
+    touchStart.y = null;
+    touchCurr.x = null;
+    touchCurr.y = null;
+    touchEnd.x = null;
+    touchEnd.y = null;
+    touchVelocity.x = null;
+    touchVelocity.y = null;
+}
 
 // To reduce the number of accidental pauses, we track the start and end
 // location of a touch, and only pause if the touch starts and ends on the
@@ -420,6 +436,10 @@ let pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
 const pauseButtonBounds = pauseButton.getBoundingClientRect();
 
 window.addEventListener('touchstart', (event) => {
+    if (gameState !== GAME_STATE_RUNNING) {
+        return;
+    }
+
     event.preventDefault();
     const touch = event.touches[0];
     touchStart.x = touch.clientX;
@@ -433,27 +453,47 @@ window.addEventListener('touchstart', (event) => {
 }, { passive: false });
 
 window.addEventListener('touchmove', (event) => {
+    if (gameState !== GAME_STATE_RUNNING) {
+        return;
+    }
+
     if (event.touches.length > 0) {
+        touchVelocity.x = event.touches[0].clientX - touchCurr.x;
+        touchVelocity.y = event.touches[0].clientY - touchCurr.y;
         touchCurr.x = event.touches[0].clientX;
         touchCurr.y = event.touches[0].clientY;
     }
 });
 
 window.addEventListener('touchend', (event) => {
+    if (gameState === GAME_STATE_START || gameState === GAME_STATE_GAME_OVER) {
+        return;
+    }
+
     event.preventDefault();
     const touch = event.changedTouches[0];
     touchEnd.x = touch.clientX;
     touchEnd.y = touch.clientY;
 
-    if (isInBounds(touchEnd.x, touchEnd.y, pauseButtonBounds) && 
-        pauseDetectionState === PAUSE_DETECTION_WAITING) {
+    if (gameState === GAME_STATE_RUNNING) {
+        if (isInBounds(touchEnd.x, touchEnd.y, pauseButtonBounds) && 
+            pauseDetectionState === PAUSE_DETECTION_WAITING) {
+            // Only pause if touch starts and ends in pause button
+            togglePause();
+        } else {
+            // Else, take the touch to be a swipe for movement
+            inputs.enqueue(resolveDirection(touchStart, touchEnd));
+        }
+    }
+
+    if (gameState === GAME_STATE_PAUSED &&
+        isInBounds(touchEnd.x, touchEnd.y, pauseButtonBounds)) {
+        // If game is paused, unpause if touch ends on pause button
         togglePause();
     }
-    
+
     // Reset variable to be reassigned on next pause touch
     pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
- 
-    inputs.enqueue(resolveDirection(touchStart, touchEnd));
 });
 
 function isInBounds(x, y, bounds) {
@@ -463,7 +503,7 @@ function isInBounds(x, y, bounds) {
 function resolveDirection(touchInit, touchFinal) {
     // Not sure why this is necessary
     for (const touch of [touchInit, touchFinal]) {
-        for (const [_, value] of Object.entries(touch)) {
+        for (const [key, value] of Object.entries(touch)) {
             if (value === null) {
                 return 'none';
             }
@@ -471,6 +511,17 @@ function resolveDirection(touchInit, touchFinal) {
     }
     const deltaX = touchFinal.x - touchInit.x;
     const deltaY = touchFinal.y - touchInit.y;
+
+    // This was an attempt to introduce a derivative controller to give more
+    // weight to higher velocity, but does not work as currently implemented as
+    // touchmove updates at equal distance (1), so touchVelocity is not useful.
+    /*Object.keys(touchVelocity).forEach((key) => {
+        console.log(`touchVelocity ${key}: ${touchVelocity[key]}`);
+        if(touchVelocity[key] === null) {
+            touchVelocity[key] = 1;
+        }
+        console.log(`touchVelocity ${key}: ${touchVelocity[key]}`);
+    });*/
 
     if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
         return 'none';
