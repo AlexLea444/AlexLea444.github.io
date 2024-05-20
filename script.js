@@ -60,7 +60,7 @@ class InputsList {
     // Function to remove element from the queue
     dequeue() {
         if (this.isEmpty()) {
-            return "Underflow";
+            return 'Underflow';
         }
         return this.items.shift();
     }
@@ -241,22 +241,18 @@ function drawTrail() {
             // current segment is left of previous segment
             ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
             ctx.lineTo((curr.x + 1) * gridSize, (curr.y + 1) * gridSize - 1);
-            console.log("LEFT");
         } else if (curr.x === prev.x + 1) {
             // current segment is right of previous segment
             ctx.moveTo(curr.x * gridSize, curr.y * gridSize + 1);
             ctx.lineTo(curr.x * gridSize, (curr.y + 1) * gridSize - 1);
-            console.log("RIGHT");
         } else if (curr.y === prev.y - 1) {
             // current segment is on top of previous segment
             ctx.moveTo(curr.x * gridSize + 1, (curr.y + 1) * gridSize);
             ctx.lineTo((curr.x + 1) * gridSize - 1, (curr.y + 1) * gridSize);
-            console.log("UP");
         } else if (curr.y === prev.y + 1) {
             // current segment is below previous segment
             ctx.moveTo(curr.x * gridSize + 1, curr.y * gridSize);
             ctx.lineTo((curr.x + 1) * gridSize - 1, curr.y * gridSize);
-            console.log("DOWN");
         }
         prev = curr;
     }
@@ -264,6 +260,8 @@ function drawTrail() {
 }
 
 function movePlayer() {
+    
+
     updateVelocity(inputs.dequeue());
   
     player.x += player.dx;
@@ -275,7 +273,6 @@ function movePlayer() {
             // Check that collision is not caused by trail segment which is
             // about to be dequeued
             let trailEnd = trail.last();
-            console.log(`x: ${trailEnd.x}, y: ${trailEnd.y}`);
             if (player.x !== trailEnd.x || player.y !== trailEnd.y) {
                 collisionState = COLLISION_STATE_TAIL;
             }
@@ -326,7 +323,7 @@ function updateVelocity(direction) {
         }
     } else if (direction === 'down') {
         if (player.dx !== 0) {
-            player.dy = 1;
+            player.dy = 1;PAUSE_DETECTION_NOT_WAITING
             player.dx = 0;
         }
     } else if (direction === 'left') {
@@ -339,6 +336,16 @@ function updateVelocity(direction) {
             player.dx = 1;
             player.dy = 0;
         }
+    } else if (direction === 'Underflow') {
+        // No input from input list, so we can check if the user is swiping
+        const new_direction = resolveDirection(touchStart, touchCurr);
+        if (validInputs.indexOf(new_direction) !== -1) {
+            // Update starting points if a significant change was detected
+            // Allows for finger held on screen, and prevents repeat inputs
+            touchStart.x = touchCurr.x;
+            touchStart.y = touchCurr.y;
+        }
+        updateVelocity(new_direction);
     }
 }
 
@@ -389,9 +396,18 @@ document.addEventListener('keydown', event => {
 });
 
 /* Determine inputs by swiping on mobile */
-let touchStartX = 0;
-let touchStartY = 0;
-let mobile = false;
+let touchStart = {
+    x: null,
+    y: null,
+}
+let touchCurr = {
+    x: null,
+    y: null,
+}
+let touchEnd = {
+    x: null,
+    y: null,
+}
 
 // To reduce the number of accidental pauses, we track the start and end
 // location of a touch, and only pause if the touch starts and ends on the
@@ -405,25 +421,31 @@ const pauseButtonBounds = pauseButton.getBoundingClientRect();
 
 window.addEventListener('touchstart', (event) => {
     event.preventDefault();
-    mobile = true;
     const touch = event.touches[0];
-    touchStartX = touch.clientX;
-    touchStartY = touch.clientY;
+    touchStart.x = touch.clientX;
+    touchStart.y = touch.clientY;
 
-    if (isInBounds(touchStartX, touchStartY, pauseButtonBounds)) {
+    if (isInBounds(touchStart.x, touchStart.y, pauseButtonBounds)) {
         pauseDetectionState = PAUSE_DETECTION_WAITING;
     } else {
         pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
     }
 }, { passive: false });
 
+window.addEventListener('touchmove', (event) => {
+    if (event.touches.length > 0) {
+        touchCurr.x = event.touches[0].clientX;
+        touchCurr.y = event.touches[0].clientY;
+    }
+});
+
 window.addEventListener('touchend', (event) => {
     event.preventDefault();
     const touch = event.changedTouches[0];
-    const touchEndX = touch.clientX;
-    const touchEndY = touch.clientY;
+    touchEnd.x = touch.clientX;
+    touchEnd.y = touch.clientY;
 
-    if (isInBounds(touchEndX, touchEndY, pauseButtonBounds) && 
+    if (isInBounds(touchEnd.x, touchEnd.y, pauseButtonBounds) && 
         pauseDetectionState === PAUSE_DETECTION_WAITING) {
         togglePause();
     }
@@ -431,32 +453,44 @@ window.addEventListener('touchend', (event) => {
     // Reset variable to be reassigned on next pause touch
     pauseDetectionState = PAUSE_DETECTION_NOT_WAITING;
  
-    const deltaX = touchEndX - touchStartX;
-    const deltaY = touchEndY - touchStartY;
-  
-    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
-        return;
-    }
-  
-    if (Math.abs(deltaX) > Math.abs(deltaY)) {
-    // Horizontal swipe
-        if (deltaX > 0) {
-            inputs.enqueue('right');
-        } else {
-            inputs.enqueue('left');
-        }
-    } else {
-    // Vertical swipe
-        if (deltaY > 0) {
-            inputs.enqueue('down');
-        } else {
-            inputs.enqueue('up');
-        }
-    }
+    inputs.enqueue(resolveDirection(touchStart, touchEnd));
 });
 
 function isInBounds(x, y, bounds) {
     return (x <= bounds.right && x >= bounds.left && y >= bounds.top && y <= bounds.bottom);
+}
+
+function resolveDirection(touchInit, touchFinal) {
+    // Not sure why this is necessary
+    for (const touch of [touchInit, touchFinal]) {
+        for (const [_, value] of Object.entries(touch)) {
+            if (value === null) {
+                return 'none';
+            }
+        }
+    }
+    const deltaX = touchFinal.x - touchInit.x;
+    const deltaY = touchFinal.y - touchInit.y;
+
+    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < 30) {
+        return 'none';
+    }
+
+    if (Math.abs(deltaX) > Math.abs(deltaY)) {
+        // Horizontal swipe
+        if (deltaX > 0) {
+            return 'right';
+        } else {
+            return 'left';
+        }
+    } else {
+        // Vertical swipe
+        if (deltaY > 0) {
+            return 'down';
+        } else {
+            return 'up';
+        }
+    }
 }
 
 pauseButton.addEventListener('click', function() {
