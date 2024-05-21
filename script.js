@@ -1,5 +1,5 @@
 import Apple from './Apple.js';
-import {TrailSegment, Trail, Player} from './Trail.js';
+import Snake from './Snake.js';
 import {InputsList, validInputs} from './Inputs.js';
 
 // Get references to HTML elements
@@ -39,6 +39,14 @@ const gridBounds = {
     bottom: numRows - 1,
 };
 
+// Helpful type definitions for interacting with positions as objects
+/**
+ * @typedef {import('./Snake.js').Location} Location
+ */
+/**
+ * @typedef {import('./Snake.js').Velocity} Velocity
+ */
+
 // Load highscore from local storage
 /** @type {number} */
 let highscore = localStorage.getItem('highscore');
@@ -47,10 +55,8 @@ if (highscore === null) {
 }
 
 // Initialize game objects
-/** @type {Player} */
-let player = new Player(numCols, numRows);
-/** @type {Trail} */
-let trail = new Trail(new TrailSegment(player.location()));
+/** @type {Snake} */
+let snake = new Snake(numCols, numRows, 'green');
 /** @type {Apple} */
 let apple = new Apple(numCols, numRows);
 
@@ -117,7 +123,7 @@ function updateGameState(newState) {
             pauseButton.style.opacity = 0.5;
             pauseButton.textContent = "PAUSE";
             // Set an interval for the movePlayer function (every _ ms)
-            moveIntervalId = setInterval(movePlayer, FRAME_PERIOD_MS);
+            moveIntervalId = setInterval(updateSnake, FRAME_PERIOD_MS);
 
             break;
         case GAME_STATE_PAUSED:
@@ -158,22 +164,37 @@ function updateGameState(newState) {
  */
 function gridToHTML() {
     let grid = "";
-    for (let i = 0; i < numCols; i++) {
-        for (let j = 0; j < numRows; j++) {
-            let location = {x: j, y: i,};
-            if (player.x === j && player.y === i) {
+
+    for (let i = -1; i <= numRows; i++) {
+        for (let j = -1; j <= numCols; j++) {
+            const location = {x: j, y: i,};
+            if (snake.head.x === j && snake.head.y === i) {
                 grid = grid.concat("&#128165;");
-            } else if (trail.isTrailAt(location)) {
+            } else if (snake.isTrailAt(location)) {
                 grid = grid.concat("&#129001;");
             } else if (apple.x === j && apple.y === i) {
                 grid = grid.concat("&#127822;");
+            } else if (isInBounds(j, i, gridBounds)) {
+                grid = grid.concat("&#11036;");
             } else {
-                grid = grid.concat("&#11036;")
+                grid = grid.concat("&#11035;");
             }
         }
         grid = grid.concat("<br>");
     }
+
     return grid;
+}
+
+function gridToText() {
+        return gridToHTML().replaceAll('<br>', '\n')
+                            .replaceAll('&#129001;',"🟩")
+                            .replaceAll('&#11035;', "⬛")
+                            .replaceAll('&#11036;', "⬜")
+                            .replaceAll('&#127822;', "🍎")
+                            .replaceAll('&#128165;', "💥")
+                            .concat(`\nscore: ${score()}`);
+
 }
 
 /**
@@ -189,8 +210,8 @@ function draw() {
     // Draw grid
     drawGrid();
 
-    // Draw trail
-    drawTrail();
+    // Draw snake
+    drawSnake();
 
     document.getElementById('score').textContent = `Score: ${score()}`;
 }
@@ -233,35 +254,44 @@ function drawGrid() {
 }
 
 /**
- * Draw the trail of the snake.
+ * Draw segment of snake with a dark outline
+ * @param {Location} segment - The segment of the snake to be drawn.
  */
-function drawTrail() {
-    // First, draw a dark square around every segment of the trail
+function drawSegment(segment) {
     ctx.beginPath();
     ctx.strokeStyle = "#222";
 
-    for (let segment of trail) {
-        drawSquare(segment);
+    drawSquare({x: segment.x, y: segment.y, color: snake.color});
 
-        ctx.moveTo(segment.x * gridSize, segment.y * gridSize);
+    ctx.moveTo(segment.x * gridSize, segment.y * gridSize);
 
-        ctx.lineTo((segment.x + 1) * gridSize, segment.y * gridSize);
-        ctx.lineTo((segment.x + 1) * gridSize, (segment.y + 1) * gridSize);
-        ctx.lineTo(segment.x * gridSize, (segment.y + 1) * gridSize);
-        ctx.lineTo(segment.x * gridSize, segment.y * gridSize);
+    ctx.lineTo((segment.x + 1) * gridSize, segment.y * gridSize);
+    ctx.lineTo((segment.x + 1) * gridSize, (segment.y + 1) * gridSize);
+    ctx.lineTo(segment.x * gridSize, (segment.y + 1) * gridSize);
+    ctx.lineTo(segment.x * gridSize, segment.y * gridSize);
 
-    }
     ctx.stroke();
+}
+
+/**
+ * Draw the snake.
+ */
+function drawSnake() {
+    // First, draw every segment of the snake with a dark square around it
+    drawSegment(snake.head);
+
+    for (let segment of snake) {
+        drawSegment(segment);
+    }
 
 
     // Then, go back in and remove the lines between snake segments
-    let prev = trail.last();
+    let prev = snake.head;
 
     ctx.beginPath();
-    // Assume trail is all one color
-    ctx.strokeStyle = 'green';
+    ctx.strokeStyle = snake.color;
 
-    for (const curr of trail) {
+    for (const curr of snake) {
         if (curr.x === prev.x - 1) {
             // current segment is left of previous segment
             ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
@@ -285,38 +315,34 @@ function drawTrail() {
 }
 
 /**
- * Move the player based on inputs, update position/game state if necessary.
+ * Move the snake based on inputs, update position/game state if necessary.
  */
-function movePlayer() {
-    updateVelocity(inputs.dequeue());
+function updateSnake() {
+
+    // Update velocity, ignoring inputs that don't affect velocity
+    const prevVelocity = {dx: snake.dx, dy: snake.dy};
+    let newVelocity = getNewVelocity(inputs.dequeue(), prevVelocity);
+    while ((newVelocity === prevVelocity) && (newVelocity !== null)) {
+        newVelocity = getNewVelocity(inputs.dequeue(), prevVelocity);
+    }
+
+    snake.setVelocity(newVelocity);
+
+    snake.move();
   
-    player.x += player.dx;
-    player.y += player.dy;
-  
-    // Check if the new location is within bounds and not an obstacle
-    if (isInBounds(player.x, player.y, gridBounds)) {
-        if (trail.isTrailAt(player.location())) {
-            // Check that collision is not caused by trail segment which is
-            // about to be dequeued
-            let trailEnd = trail.last();
-            if (player.x !== trailEnd.x || player.y !== trailEnd.y) {
-                collisionState = COLLISION_STATE_TAIL;
-            }
-        }
-  
-        if (player.x === apple.x && player.y === apple.y) {
-            apple.moveNotTo(trail);
-        } else if (collisionState === COLLISION_STATE_NONE) {
-            trail.dequeue();
-        }
-    } else {
-        player.x -= player.dx;
-        player.y -= player.dy;
+    if (!isInBounds(snake.head.x, snake.head.y, gridBounds)) {
+        // Check if the snake is within bounds
         collisionState = COLLISION_STATE_WALL;
+    } else if (snake.hitSelf()) {
+        // Check if the snake has hit itself
+        collisionState = COLLISION_STATE_TAIL;
+    } else if (snake.head.x === apple.x && snake.head.y === apple.y) {
+        // Check if the snake has hit an apple
+        snake.grow();
+        apple.moveNotTo(snake);
     }
  
     if (collisionState === COLLISION_STATE_NONE) {
-        trail.enqueue(new TrailSegment(player.location()));
         draw();
     } else {
         updateGameState(GAME_STATE_GAME_OVER);
@@ -327,12 +353,7 @@ function movePlayer() {
  * @returns {number} The score of the game, same as the length of the trial.
  */
 function score() {
-    if (trail.length() === (numCols * numRows - 1) && gameState === GAME_STATE_RUNNING) {
-        // Attempt to prevent crash when apple has no place to spawn, not tested.
-        updateGameState(GAME_STATE_GAME_OVER);
-    } else {
-        return trail.length();
-    }
+    return snake.length();
 }
 
 /**
@@ -343,38 +364,36 @@ function resetGame() {
     collisionState = COLLISION_STATE_NONE;
     highscore = Math.max(highscore, score());
     localStorage.setItem('highscore', highscore);
-    player = new Player(numCols, numRows);
-    trail = new Trail(new TrailSegment(player.location()));
-    apple.moveNotTo(trail);
+    snake = new Snake(numCols, numRows, 'green');
+    apple.moveNotTo(snake);
     resetTouches();
     draw();
 }
 
 /**
- * Update the velocity of the player based on the given direction.
+ * Gives the velocity of the snake based on the given direction.
  * If given 'Underflow', checks for current input from touchscreen.
  * @param {string} direction - Direction of new motion, should be in validInputs.
+ * @param {Velocity} prevVelocity - The current (previous) velocity of the snake.
+ * @returns {Velocity|null} The new velocity the snake should have, or null
+ * if the velocity shouldn't change.
  */
-function updateVelocity(direction) {
+function getNewVelocity(direction, prevVelocity) {
     if (direction === 'up') {
-        if (player.dx !== 0) {
-            player.dy = -1;
-            player.dx = 0;
+        if (prevVelocity.dx !== 0) {
+            return {dx: 0, dy: -1};
         }
     } else if (direction === 'down') {
-        if (player.dx !== 0) {
-            player.dy = 1;PAUSE_DETECTION_NOT_WAITING
-            player.dx = 0;
+        if (prevVelocity.dx !== 0) {
+            return {dx: 0, dy: 1};
         }
     } else if (direction === 'left') {
-        if (player.dy !== 0) {
-            player.dx = -1;
-            player.dy = 0;
+        if (prevVelocity.dy !== 0) {
+            return {dx: -1, dy: 0};
         }
     } else if (direction === 'right') {
-        if (player.dy !== 0) {
-            player.dx = 1;
-            player.dy = 0;
+        if (prevVelocity.dy !== 0) {
+            return {dx: 1, dy: 0};
         }
     } else if (direction === 'Underflow') {
         // No input from input list, so we can check if the user is swiping
@@ -390,9 +409,11 @@ function updateVelocity(direction) {
                 touchStart.y = touchCurr.y;
             }
 
-            updateVelocity(newDirection);
+            return getNewVelocity(newDirection);
         }
     }
+
+    return null;
 }
 
 /**
@@ -688,13 +709,7 @@ startButton.addEventListener('touchend', function() {
  */
 shareButton.addEventListener('click', function() {
     if (gameState === GAME_STATE_GAME_OVER) {
-        const copyText = gridToHTML().replaceAll('<br>', '\n')
-                                     .replaceAll('&#129001;',"🟩")
-                                     .replaceAll('&#11036;', "⬜")
-                                     .replaceAll('&#127822;', "🍎")
-                                     .replaceAll('&#128165;', "💥")
-                                     .concat(`\nscore: ${score()}`);
-        navigator.clipboard.writeText(copyText);
+        navigator.clipboard.writeText(gridToText());
 
         alert("Copied score to clipboard!");
     }
@@ -706,13 +721,7 @@ shareButton.addEventListener('click', function() {
  */
 shareButton.addEventListener('touchend', function() {
     if (gameState === GAME_STATE_GAME_OVER) {
-        const copyText = gridToHTML().replaceAll('<br>', '\n')
-                                     .replaceAll('&#129001;',"🟩")
-                                     .replaceAll('&#11036;', "⬜")
-                                     .replaceAll('&#127822;', "🍎")
-                                     .replaceAll('&#128165;', "💥")
-                                     .concat(`\nscore: ${score()}`);
-        navigator.clipboard.writeText(copyText);
+        navigator.clipboard.writeText(gridToText());
 
         alert("Copied score to clipboard!");
     }

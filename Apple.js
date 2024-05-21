@@ -1,4 +1,4 @@
-import {Trail} from './Trail.js';
+import Snake from './Snake.js';
 
 /**
  * @class
@@ -52,14 +52,14 @@ export default class Apple {
      * Move apple to a square not occupied by the trail.
      * Apple may not be moved to its current location.
      *
-     * @param {Trail} trail - Trail to be avoided by moved apple.
+     * @param {Snake} snake - Snake to be avoided by moved apple.
      */
-    moveNotTo(trail) {
+    moveNotTo(snake) {
         const prevX = this.x;
         const prevY = this.y;
         this.x = Math.floor(Math.random() * this.numCols);
         this.y = Math.floor(Math.random() * this.numRows);
-        while (trail.isTrailAt(this.location()) || (prevX === this.x && prevY === this.y)) {
+        while (snake.isTrailAt(this.location()) || (prevX === this.x && prevY === this.y)) {
             this.x = Math.floor(Math.random() * this.numCols);
             this.y = Math.floor(Math.random() * this.numRows);
         }
