@@ -1,36 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
-    <div class="Container">
-        <h1>Snake Game</h1>
-        <p style="text-align:center;">
-            Eat apples and avoid hitting walls, or your tail!
-        </p>
-        <div id="gameCanvasContainer">
-            <canvas id="gameCanvas" width="400" height="400"></canvas>
-            <div id="pauseOverlay">PAUSED</div> <!-- Overlay with "PAUSED" text -->
-            <div id="score">Score: 0</div>
-            <button class="pauseButton" type="button">PAUSE</button> 
-            <div id="infoOverlay" width="400" height="400">
-                <div id="infoText">
-                    <p id="gameInfo">Ready to go?</p>
-                    <p id="gridInfo">Swipe to change direction.</p>
-                    <p id="finalScore">High Score: 0</p>
-                    <div id="buttonContainer">
-                        <button id="startButton">Start</button>
-                        <button id="shareButton">Copy to Clipboard</button>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Snake Game</title>
+        <link rel="stylesheet" href="styles.css">
+    </head>
+    <body>
+        <div class="Container">
+            <h1>Snake Game</h1>
+            <p style="text-align:center;">
+                Eat apples and avoid hitting walls, or your tail!
+            </p>
+            <div id="gameCanvasContainer">
+                <canvas id="gameCanvas" width="400" height="400"></canvas>
+                <div id="pauseOverlay">PAUSED</div> <!-- Overlay with "PAUSED" text -->
+                <div id="score">Score: 0</div>
+                <button class="pauseButton" type="button">PAUSE</button> 
+                <div id="infoOverlay" width="400" height="400">
+                    <div id="infoText">
+                        <p id="gameInfo">Ready to go?</p>
+                        <p id="gridInfo">Swipe to change direction.</p>
+                        <p id="finalScore">High Score: 0</p>
+                        <div id="buttonContainer">
+                            <button id="startButton">Start</button>
+                            <button id="shareButton">Copy to Clipboard</button>
+                        </div>
                     </div>
                 </div>
             </div>
         </div>
-    </div>
-    <script type="module" src="script.js"></script>
-</body>
+        <script type="module" src="script.js"></script>
+    </body>
 </html>
 

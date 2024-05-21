@@ -1,5 +1,6 @@
 import Apple from './Apple.js';
 import {TrailSegment, Trail, Player} from './Trail.js';
+import {InputsList, validInputs} from './Inputs.js';
 
 // Get references to HTML elements
 const gameCanvas = document.getElementById('gameCanvas');
@@ -36,40 +37,6 @@ let trail = new Trail(new TrailSegment(player.location()));
 
 let apple = new Apple(numCols, numRows);
 
-let validInputs = ['up', 'down', 'left', 'right'];
-
-class InputsList {
-    constructor() {
-        this.items = [];
-    }
-
-    clear() {
-        this.items = [];
-    }
-  
-    // Function to add element to the queue
-    enqueue(element) {
-        if (gameState !== GAME_STATE_RUNNING) {
-            return;
-        }
-        if (validInputs.indexOf(element) !== -1) {
-            this.items.push(element);
-        }
-    }
-  
-    // Function to remove element from the queue
-    dequeue() {
-        if (this.isEmpty()) {
-            return 'Underflow';
-        }
-        return this.items.shift();
-    }
-  
-    // Function to check if the queue is empty
-    isEmpty() {
-        return this.items.length === 0;
-    }
-}
 
 let inputs = new InputsList();
 
@@ -157,7 +124,7 @@ function gridToHTML() {
             let location = {x: j, y: i,};
             if (player.x === j && player.y === i) {
                 grid = grid.concat("&#128165;");
-            } else if (trail.search(location)) {
+            } else if (trail.isTrailAt(location)) {
                 grid = grid.concat("&#129001;");
             } else if (apple.x === j && apple.y === i) {
                 grid = grid.concat("&#127822;");
@@ -269,7 +236,7 @@ function movePlayer() {
   
     // Check if the new location is within bounds and not an obstacle
     if (isInBounds(player.x, player.y, gridBounds)) {
-        if (trail.search(player.location())) {
+        if (trail.isTrailAt(player.location())) {
             // Check that collision is not caused by trail segment which is
             // about to be dequeued
             let trailEnd = trail.last();
@@ -368,31 +335,32 @@ function togglePause() {
 // Takes game inputs from the keyboard
 // Also prevents default actions for certain keys
 document.addEventListener('keydown', event => {
+    let newDirection = 'none';
     switch (event.key) {
         case ' ':
-            event.preventDefault();
-            togglePause();
-            break;
         case 'Escape':
             event.preventDefault();
             togglePause();
-            break;
+            return;
         case 'ArrowUp':
             event.preventDefault();
-            inputs.enqueue('up');
+            newDirection = 'up';
             break;
         case 'ArrowDown':
             event.preventDefault();
-            inputs.enqueue('down');
+            newDirection = 'down';
             break;
         case 'ArrowLeft':
             event.preventDefault();
-            inputs.enqueue('left');
+            newDirection = 'left';
             break;
         case 'ArrowRight':
             event.preventDefault();
-            inputs.enqueue('right');
+            newDirection = 'right';
             break;
+    }
+    if (gameState === GAME_STATE_RUNNING) {
+        inputs.enqueue(newDirection);
     }
 });
 
@@ -409,10 +377,6 @@ let touchEnd = {
     x: null,
     y: null,
 }
-let touchVelocity = {
-    x: null,
-    y: null,
-}
 
 function resetTouches() {
     touchStart.x = null;
@@ -421,8 +385,6 @@ function resetTouches() {
     touchCurr.y = null;
     touchEnd.x = null;
     touchEnd.y = null;
-    touchVelocity.x = null;
-    touchVelocity.y = null;
 }
 
 // To reduce the number of accidental pauses, we track the start and end
@@ -458,8 +420,6 @@ window.addEventListener('touchmove', (event) => {
     }
 
     if (event.touches.length > 0) {
-        touchVelocity.x = event.touches[0].clientX - touchCurr.x;
-        touchVelocity.y = event.touches[0].clientY - touchCurr.y;
         touchCurr.x = event.touches[0].clientX;
         touchCurr.y = event.touches[0].clientY;
     }
@@ -478,15 +438,12 @@ window.addEventListener('touchend', (event) => {
     if (gameState === GAME_STATE_RUNNING) {
         if (isInBounds(touchEnd.x, touchEnd.y, pauseButtonBounds) && 
             pauseDetectionState === PAUSE_DETECTION_WAITING) {
-            // Only pause if touch starts and ends in pause button
             togglePause();
         } else {
             // Else, take the touch to be a swipe for movement
             inputs.enqueue(resolveDirection(touchStart, touchEnd));
         }
-    }
-
-    if (gameState === GAME_STATE_PAUSED &&
+    } else if (gameState === GAME_STATE_PAUSED &&
         isInBounds(touchEnd.x, touchEnd.y, pauseButtonBounds)) {
         // If game is paused, unpause if touch ends on pause button
         togglePause();
