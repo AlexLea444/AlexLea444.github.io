@@ -1,32 +1,64 @@
+/**
+ * An array of valid directional inputs.
+ * @type {string[]}
+ */
 let validInputs = ['up', 'down', 'left', 'right'];
 
+/**
+ * Queue implementation where only valid directional inputs are stored.
+ * @class
+ */
 class InputsList {
+    /**
+     * The private items array that stores the directions.
+     * @type {string[]}
+     * @private
+     */
+    #items;
+
+    /**
+     * Creates an empty instance of InputsList.
+     * @constructor
+     */
     constructor() {
-        this.items = [];
+        this.#items = [];
     }
 
+    /**
+     * Frees all stored inputs from InputsList.
+     */
     clear() {
-        this.items = [];
+        this.#items = [];
     }
   
-    // Function to add element to the queue
+    /**
+     * Adds direction to list of inputs, if direction is valid.
+     * @param {string} direction - The direction to add.
+     */
     enqueue(direction) {
         if (validInputs.indexOf(direction) !== -1) {
-            this.items.push(direction);
+            this.#items.push(direction);
         }
     }
   
-    // Function to remove element from the queue
+    /**
+     * Removes and returns direction from list of inputs.
+     * @returns {string} The oldest input stored in the InputsList.
+     * 'Underflow' if InputsList is empty.
+     */
     dequeue() {
         if (this.isEmpty()) {
             return 'Underflow';
         }
-        return this.items.shift();
+        return this.#items.shift();
     }
-  
-    // Function to check if the queue is empty
+
+    /**
+     * Checks if the InputsList is empty.
+     * @returns {boolean} True if the InputsList is empty, otherwise false.
+     */
     isEmpty() {
-        return this.items.length === 0;
+        return this.#items.length === 0;
     }
 }
 

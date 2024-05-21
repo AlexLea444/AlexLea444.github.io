@@ -53,7 +53,7 @@ class Trail {
      */
     constructor(head) {
         /**
-         * The first segments of the snake.
+         * The segments of the snake.
          * @type {TrailSegment[]}
          */
         this.items = new Array(head);
@@ -102,7 +102,7 @@ class Trail {
     /**
      * Function to check if the queue is empty
      *
-     * @returns {boolean} true if the trail is empty, else false.
+     * @returns {boolean} True if the trail is empty, else false.
      */
     isEmpty() {
         return this.items.length === 0;
@@ -133,7 +133,7 @@ class Trail {
      * Function to search for a location in the trail
      * 
      * @param {Location} location - Location to compare to search for segment.
-     * @returns {boolean} true if a segment exists at location, else false.
+     * @returns {boolean} True if a segment exists at location, else false.
      */
     isTrailAt(location) {
         for (let segment of this) {

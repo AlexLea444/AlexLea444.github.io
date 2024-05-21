@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Class: TrailSegment</title>
+    <title>JSDoc: Class: exports</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Class: TrailSegment</h1>
+    <h1 class="page-title">Class: exports</h1>
 
     
 
@@ -28,9 +28,7 @@
 
 <header>
     
-        <h2><span class="attribs"><span class="type-signature"></span></span>TrailSegment<span class="signature">(location)</span><span class="type-signature"></span></h2>
-        
-            <div class="class-description">Represents a segment of a trail.</div>
+        <h2><span class="attribs"><span class="type-signature"></span></span>exports<span class="signature">(numCols, numRows)</span><span class="type-signature"></span></h2>
         
     
 </header>
@@ -41,16 +39,19 @@
         
 
     
-    <h2>Constructor</h2>
-    
 
     
-    <h4 class="name" id="TrailSegment"><span class="type-signature"></span>new TrailSegment<span class="signature">(location)</span><span class="type-signature"></span></h4>
+    <h4 class="name" id="exports"><span class="type-signature"></span>new exports<span class="signature">(numCols, numRows)</span><span class="type-signature"></span></h4>
     
 
     
 
 
+
+<div class="description">
+    Generates an apple at a random location.
+numCols and numRows are saved and assumed to be consistent.
+</div>
 
 
 
@@ -85,13 +86,13 @@
 
         <tr>
             
-                <td class="name"><code>location</code></td>
+                <td class="name"><code>numCols</code></td>
             
 
             <td class="type">
             
                 
-<span class="param-type"><a href="global.html#Location">Location</a></span>
+<span class="param-type">number</span>
 
 
             
@@ -101,7 +102,30 @@
 
             
 
-            <td class="description last"></td>
+            <td class="description last">Number of columns of the game grid.</td>
+        </tr>
+
+    
+
+        <tr>
+            
+                <td class="name"><code>numRows</code></td>
+            
+
+            <td class="type">
+            
+                
+<span class="param-type">number</span>
+
+
+            
+            </td>
+
+            
+
+            
+
+            <td class="description last">Number of rows of the game grid.</td>
         </tr>
 
     
@@ -142,7 +166,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Trail.js.html">Trail.js</a>, <a href="Trail.js.html#line12">line 12</a>
+        <a href="Apple.js.html">Apple.js</a>, <a href="Apple.js.html#line6">line 6</a>
     </li></ul></dd>
     
 
@@ -246,7 +270,151 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Trail.js.html">Trail.js</a>, <a href="Trail.js.html#line32">line 32</a>
+        <a href="Apple.js.html">Apple.js</a>, <a href="Apple.js.html#line29">line 29</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="numCols"><span class="type-signature"></span>numCols<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    Number of columns of the game grid.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Apple.js.html">Apple.js</a>, <a href="Apple.js.html#line35">line 35</a>
+    </li></ul></dd>
+    
+
+    
+
+    
+
+    
+</dl>
+
+
+
+
+
+
+        
+            
+<h4 class="name" id="numRows"><span class="type-signature"></span>numRows<span class="type-signature"> :number</span></h4>
+
+
+
+
+<div class="description">
+    Number of rows of the game grid.
+</div>
+
+
+
+    <h5>Type:</h5>
+    <ul>
+        <li>
+            
+<span class="param-type">number</span>
+
+
+        </li>
+    </ul>
+
+
+
+
+
+<dl class="details">
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+
+    
+    <dt class="tag-source">Source:</dt>
+    <dd class="tag-source"><ul class="dummy"><li>
+        <a href="Apple.js.html">Apple.js</a>, <a href="Apple.js.html#line40">line 40</a>
     </li></ul></dd>
     
 
@@ -270,7 +438,7 @@
 
 
 <div class="description">
-    The x coordinate.
+    The x position of the apple.
 </div>
 
 
@@ -318,7 +486,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Trail.js.html">Trail.js</a>, <a href="Trail.js.html#line22">line 22</a>
+        <a href="Apple.js.html">Apple.js</a>, <a href="Apple.js.html#line19">line 19</a>
     </li></ul></dd>
     
 
@@ -342,7 +510,7 @@
 
 
 <div class="description">
-    The x coordinate.
+    The y position of the apple.
 </div>
 
 
@@ -390,7 +558,7 @@
     
     <dt class="tag-source">Source:</dt>
     <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Trail.js.html">Trail.js</a>, <a href="Trail.js.html#line27">line 27</a>
+        <a href="Apple.js.html">Apple.js</a>, <a href="Apple.js.html#line24">line 24</a>
     </li></ul></dd>
     
 
@@ -409,116 +577,6 @@
         
     
 
-    
-        <h3 class="subsection-title">Methods</h3>
-
-        
-            
-
-    
-
-    
-    <h4 class="name" id="copy"><span class="type-signature"></span>copy<span class="signature">()</span><span class="type-signature"> &rarr; {<a href="TrailSegment.html">TrailSegment</a>}</span></h4>
-    
-
-    
-
-
-
-<div class="description">
-    Copy constructor
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-
-<dl class="details">
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-
-    
-    <dt class="tag-source">Source:</dt>
-    <dd class="tag-source"><ul class="dummy"><li>
-        <a href="Trail.js.html">Trail.js</a>, <a href="Trail.js.html#line40">line 40</a>
-    </li></ul></dd>
-    
-
-    
-
-    
-
-    
-</dl>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-<h5>Returns:</h5>
-
-        
-
-
-<dl>
-    <dt>
-        Type
-    </dt>
-    <dd>
-        
-<span class="param-type"><a href="TrailSegment.html">TrailSegment</a></span>
-
-
-    </dd>
-</dl>
-
-    
-
-
-
-
-
-        
     
 
     

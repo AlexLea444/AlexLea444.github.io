@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>JSDoc: Source: Trail.js</title>
+    <title>JSDoc: Source: Inputs.js</title>
 
     <script src="scripts/prettify/prettify.js"> </script>
     <script src="scripts/prettify/lang-css.js"> </script>
@@ -17,7 +17,7 @@
 
 <div id="main">
 
-    <h1 class="page-title">Source: Trail.js</h1>
+    <h1 class="page-title">Source: Inputs.js</h1>
 
     
 
@@ -27,199 +27,70 @@
     <section>
         <article>
             <pre class="prettyprint source linenums"><code>/**
- * @typedef {Object} Location
- * @property {number} x - The x coordinate of the location
- * @property {number} y - The y coordinate of the location
+ * An array of valid directional inputs.
+ * @type {string[]}
  */
+let validInputs = ['up', 'down', 'left', 'right'];
 
 /**
- * Represents a segment of a trail.
- *
+ * Queue implementation where only valid directional inputs are stored.
  * @class
  */
-class TrailSegment {
+class InputsList {
     /**
+     * The private items array that stores the directions.
+     * @type {string[]}
+     * @private
+     */
+    #items;
+
+    /**
+     * Creates an empty instance of InputsList.
      * @constructor
-     * @param {Location} location 
      */
-    constructor(location) {
-        /**
-         * The x coordinate.
-         * @type {number}
-         */
-        this.x = location.x;
-        /**
-         * The x coordinate.
-         * @type {number}
-         */
-        this.y = location.y;
-        /**
-         * The color.
-         * @type {string}
-         */
-        this.color = 'green';
+    constructor() {
+        this.#items = [];
     }
-  
-    /**
-     * Copy constructor
-     *
-     * @returns {TrailSegment}
-     */
-    copy() {
-        return new TrailSegment(this.x, this.y);
-    }
-}
 
-/**
- * Represents a snake trail, contains positions and colors.
- *
- * @class
- */
-class Trail {
     /**
-     * @param {TrailSegment} head - To be the head of the snake trail
+     * Frees all stored inputs from InputsList.
      */
-    constructor(head) {
-        /**
-         * The segments of the snake.
-         * @type {TrailSegment[]}
-         */
-        this.items = new Array(head);
-        /**
-         * The assumed color of the whole snake, based on first segment.
-         * @type {string}
-         */
-        this.color = head.color;
+    clear() {
+        this.#items = [];
     }
   
     /**
-     * Pushes given trail segment to start of trail.
-     *
-     * @param {TrailSegment} segment - To be added to front (head) of snake
+     * Adds direction to list of inputs, if direction is valid.
+     * @param {string} direction - The direction to add.
      */
-    enqueue(segment) {
-        this.items.push(segment);
+    enqueue(direction) {
+        if (validInputs.indexOf(direction) !== -1) {
+            this.#items.push(direction);
+        }
     }
   
     /**
-     * Removes and returns trail segment at end of trail.
-     *
-     * @returns {TrailSegment|string} The oldest segment in the trail, or "Underflow".
-     * @description This method removes the oldest segment from the trail.
+     * Removes and returns direction from list of inputs.
+     * @returns {string} The oldest input stored in the InputsList.
+     * 'Underflow' if InputsList is empty.
      */
     dequeue() {
         if (this.isEmpty()) {
-            return "Underflow";
+            return 'Underflow';
         }
-        return this.items.shift();
+        return this.#items.shift();
     }
 
     /**
-     * Function to get last element from the queue
-     *
-     * @returns {TrailSegment|string} The oldest segment in the trail, or "Underflow".
-     * @description This method does not modify the trail.
-     */
-    last() {
-        if (this.isEmpty()) {
-            return "Underflow";
-        }
-        return this.items[0];
-    }
-  
-    /**
-     * Function to check if the queue is empty
-     *
-     * @returns {boolean} True if the trail is empty, else false.
+     * Checks if the InputsList is empty.
+     * @returns {boolean} True if the InputsList is empty, otherwise false.
      */
     isEmpty() {
-        return this.items.length === 0;
-    }
-  
-    /**
-     * Function to get the length of the queue
-     *
-     * @returns {number} Total lenght of trail, given by number of segments.
-     */
-    length() {
-        return this.items.length;
-    }
-  
-    /**
-     * Returns an iterator for trail segments.
-     *
-     * @generator
-     * @yields {TrailSegment} The next segment of the trail.
-     */
-    *[Symbol.iterator]() {
-        for (let item of this.items) {
-            yield item;
-        }
-    }
-
-    /**
-     * Function to search for a location in the trail
-     * 
-     * @param {Location} location - Location to compare to search for segment.
-     * @returns {boolean} True if a segment exists at location, else false.
-     */
-    isTrailAt(location) {
-        for (let segment of this) {
-            if (segment.x == location.x &amp;&amp; segment.y == location.y) {
-                return true;
-            }
-        }
-        return false;
+        return this.#items.length === 0;
     }
 }
 
-/**
- * Represents a player in the snake game.
- *
- * @class
- */
-class Player {
-    /**
-     * @constructor
-     * @param {number} numCols - Number of columns of the game grid.
-     * @param {number} numRows - Number of rows of the game grid.
-     * @description Generates a player at a random location, moving right.
-     * Player's starting x is in [numCols / 8, numCols / 4)
-     * Player's starting y is in [numRows / 8, numRows / 4)
-     */
-    constructor(numCols, numRows) {
-        /**
-         * The x position of the player.
-         * @type {number}
-         */
-        this.x = Math.floor((Math.random() + 1) * numCols / 8);
-        /**
-         * The y position of the player.
-         * @type {number}
-         */
-        this.y = Math.floor((Math.random() + 1) * numRows / 8);
-        /**
-         * The x velocity of the player.
-         * @type {number}
-         */
-        this.dx = 1;
-        /**
-         * The y velocity of the player.
-         * @type {number}
-         */
-        this.dy = 0;
-    }
-
-    /**
-     * @returns {Location} Current location (x and y position) of player.
-     */
-    location() {
-        return {x: this.x,
-                y: this.y,}
-    }
-}
-
-export {TrailSegment, Trail, Player};
+export {InputsList, validInputs};
 </code></pre>
         </article>
     </section>
