@@ -409,7 +409,7 @@ function getNewVelocity(direction, prevVelocity) {
                 touchStart.y = touchCurr.y;
             }
 
-            return getNewVelocity(newDirection);
+            return getNewVelocity(newDirection, prevVelocity);
         }
     }
 
