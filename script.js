@@ -66,7 +66,7 @@ let inputs = new InputsList();
 
 // Define constants for game flow
 /** @constant {number} */
-const SWIPE_THRESHOLD = 20;
+const SWIPE_THRESHOLD = 30;
 /** @constant {number} */
 const FRAME_PERIOD_MS = 200;
 
@@ -256,12 +256,13 @@ function drawGrid() {
 /**
  * Draw segment of snake with a dark outline
  * @param {Location} segment - The segment of the snake to be drawn.
+ * @param {string} color - The color of the given segment.
  */
-function drawSegment(segment) {
+function drawSegment(segment, color) {
     ctx.beginPath();
     ctx.strokeStyle = "#222";
 
-    drawSquare({x: segment.x, y: segment.y, color: snake.color});
+    drawSquare({x: segment.x, y: segment.y, color: color});
 
     ctx.moveTo(segment.x * gridSize, segment.y * gridSize);
 
@@ -274,43 +275,64 @@ function drawSegment(segment) {
 }
 
 /**
+ * Draws a line between segments with the color of the snake, essentially
+ * erasing the grid lines.
+ * @param {Location} prev - The previous segment in the snake.
+ * @param {Location} curr - The current segment in the snake.
+ * @description Note: The segment order does not matter, except that they are
+ * next to each other.
+ */
+function drawBetweenSegments(prev, curr) {
+    if (prev === null || curr === null) {
+        return;
+    }
+
+    if (curr.x === prev.x - 1) {
+        // current segment is left of previous segment
+        ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
+        ctx.lineTo((curr.x + 1) * gridSize, (curr.y + 1) * gridSize - 1);
+    } else if (curr.x === prev.x + 1) {
+        // current segment is right of previous segment
+        ctx.moveTo(curr.x * gridSize, curr.y * gridSize + 1);
+        ctx.lineTo(curr.x * gridSize, (curr.y + 1) * gridSize - 1);
+    } else if (curr.y === prev.y - 1) {
+        // current segment is on top of previous segment
+        ctx.moveTo(curr.x * gridSize + 1, (curr.y + 1) * gridSize);
+        ctx.lineTo((curr.x + 1) * gridSize - 1, (curr.y + 1) * gridSize);
+    } else if (curr.y === prev.y + 1) {
+        // current segment is below previous segment
+        ctx.moveTo(curr.x * gridSize + 1, curr.y * gridSize);
+        ctx.lineTo((curr.x + 1) * gridSize - 1, curr.y * gridSize);
+    }
+}
+
+/**
  * Draw the snake.
  */
 function drawSnake() {
     // First, draw every segment of the snake with a dark square around it
-    drawSegment(snake.head);
+    drawSegment(snake.head, 'DarkGreen');
+    console.log(`HEAD: {${snake.head.x}, ${snake.head.y}}`);
 
     for (let segment of snake) {
-        drawSegment(segment);
+        console.log(`{${segment.x}, ${segment.y}}`);
+        drawSegment(segment, snake.color);
     }
 
 
     // Then, go back in and remove the lines between snake segments
-    let prev = snake.head;
+    let prev = null;
 
     ctx.beginPath();
     ctx.strokeStyle = snake.color;
 
     for (const curr of snake) {
-        if (curr.x === prev.x - 1) {
-            // current segment is left of previous segment
-            ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
-            ctx.lineTo((curr.x + 1) * gridSize, (curr.y + 1) * gridSize - 1);
-        } else if (curr.x === prev.x + 1) {
-            // current segment is right of previous segment
-            ctx.moveTo(curr.x * gridSize, curr.y * gridSize + 1);
-            ctx.lineTo(curr.x * gridSize, (curr.y + 1) * gridSize - 1);
-        } else if (curr.y === prev.y - 1) {
-            // current segment is on top of previous segment
-            ctx.moveTo(curr.x * gridSize + 1, (curr.y + 1) * gridSize);
-            ctx.lineTo((curr.x + 1) * gridSize - 1, (curr.y + 1) * gridSize);
-        } else if (curr.y === prev.y + 1) {
-            // current segment is below previous segment
-            ctx.moveTo(curr.x * gridSize + 1, curr.y * gridSize);
-            ctx.lineTo((curr.x + 1) * gridSize - 1, curr.y * gridSize);
-        }
+        drawBetweenSegments(prev, curr);
         prev = curr;
     }
+    
+    drawBetweenSegments(prev, snake.head);
+
     ctx.stroke();
 }
 
@@ -470,7 +492,7 @@ document.addEventListener('keydown', event => {
 /* Determine inputs by swiping on mobile */
 
 /**
- * Stores the starting coordinates of a touch event.
+ * Stores the coordinates of a touch event.
  * @typedef {Object} TouchCoordinates
  * @property {number|null} x - The x-coordinate of the touch position, or null if not set.
  * @property {number|null} y - The y-coordinate of the touch position, or null if not set.
@@ -624,12 +646,12 @@ function isInBounds(x, y, bounds) {
 
 /**
  * Determines the direction of a swipe based on first and last touch.
- * @param {number} x - The x coordinate of the location to check.
- * @param {number} y - The y coordinate of the location to check.
- * @param {Bounds} bounds - The bounds in which the coordinates are checked.
- * @returns {boolean} True if the coordinates are in the bounds, else false.
+ * @param {TouchCoordinates} touchInit - The coordinates of the starting touch.
+ * @param {TouchCoordinates} touchFinal - The coordinates of the last touch.
+ * @param {number} scaler - Option to scale swipe threshold, default is 1.
+ * @returns {boolean} Direction of swipe, or 'none' if swipe is too small or input isn't proper.
  */
-function resolveDirection(touchInit, touchFinal) {
+function resolveDirection(touchInit, touchFinal, scaler=1) {
     // Not sure why this is necessary
     for (const touch of [touchInit, touchFinal]) {
         for (const [_, value] of Object.entries(touch)) {
@@ -652,7 +674,7 @@ function resolveDirection(touchInit, touchFinal) {
         console.log(`touchVelocity ${key}: ${touchVelocity[key]}`);
     });*/
 
-    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < SWIPE_THRESHOLD) {
+    if (Math.max(Math.abs(deltaX), Math.abs(deltaY)) < SWIPE_THRESHOLD * scaler) {
         return 'none';
     }
 
