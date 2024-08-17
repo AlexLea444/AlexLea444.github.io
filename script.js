@@ -72,7 +72,7 @@ const SWIPE_THRESHOLD = 30;
 
 // Define pseudo-constant for speed (changes for different levels)
 /** @type {number} */
-let frame_period_ms = 200;
+let frame_period_ms = 190;
 
 // Queue of colors for level upgrades
 let colors = ['Salmon', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
@@ -400,11 +400,11 @@ function updateSnake() {
         if (snake.length() == numRows * numCols - 1) {
             // Check if the user has won
             snake.upgrade(next_color(), next_head_color())
-            frame_period_ms -= 10;
+            frame_period_ms -= 20;
         } else {
             snake.grow();
-            apple.moveNotTo(snake);
         }
+        apple.moveNotTo(snake);
     }
     if (collisionState === COLLISION_STATE_NONE) {
         draw();
@@ -433,7 +433,7 @@ function resetGame() {
                 'MediumPurple', 'Cornsilk'];
     head_colors = ['LightCoral', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
                     'Purple', 'Black'];
-    frame_period_ms = 200;
+    frame_period_ms = 190;
     apple.moveNotTo(snake);
     resetTouches();
     draw();
