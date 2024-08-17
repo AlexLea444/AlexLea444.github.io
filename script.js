@@ -38,6 +38,8 @@ const gridBounds = {
     top: 0,
     bottom: numRows - 1,
 };
+/** @type {number} */
+const maxScore = numRows * numCols;
 
 // Helpful type definitions for interacting with positions as objects
 /**
@@ -140,8 +142,13 @@ function updateGameState(newState) {
             clearInterval(moveIntervalId);
             infoOverlay.style.display = "flex";
             if (score() > highscore) {
+                // Celebrate
                 gameInfo.innerHTML = `Game Over<br>New high score!`;
+            } else if (score() == maxScore){
+                // Celebrate
+                gameInfo.innerHTML = `Game Over<br>You win!`;
             } else {
+                // You suck (jk ily)
                 gameInfo.innerHTML = `Game Over<br>You hit ${collisionState}`;
             }
             gridInfo.innerHTML = gridToHTML();
@@ -360,10 +367,15 @@ function updateSnake() {
         collisionState = COLLISION_STATE_TAIL;
     } else if (snake.head.x === apple.x && snake.head.y === apple.y) {
         // Check if the snake has hit an apple
-        snake.grow();
-        apple.moveNotTo(snake);
+        if (score() == numRows * numCols - 1) {
+            // Check if the user has won
+            snake.grow();
+            updateGameState(GAME_STATE_GAME_OVER);
+        } else {
+            snake.grow();
+            apple.moveNotTo(snake);
+        }
     }
- 
     if (collisionState === COLLISION_STATE_NONE) {
         draw();
     } else {
@@ -466,18 +478,22 @@ document.addEventListener('keydown', event => {
             event.preventDefault();
             togglePause();
             return;
+        case 'w':
         case 'ArrowUp':
             event.preventDefault();
             newDirection = 'up';
             break;
+        case 's':
         case 'ArrowDown':
             event.preventDefault();
             newDirection = 'down';
             break;
+        case 'a':
         case 'ArrowLeft':
             event.preventDefault();
             newDirection = 'left';
             break;
+        case 'd':
         case 'ArrowRight':
             event.preventDefault();
             newDirection = 'right';
