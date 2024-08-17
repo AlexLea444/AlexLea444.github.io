@@ -22,16 +22,23 @@ export default class Snake {
      * @type {Location}
      */
     #popped;
+    /**
+     * Private variable used to track total score through upgrades.
+     * @type {number}
+     */
+    #sum_of_prev_lengths;
 
     /**
      * @constructor
      * @param {number} numCols - Number of columns of the game grid.
      * @param {number} numRows - Number of rows of the game grid.
+     * @param {string} color - Color of trail of snake.
+     * @param {string} head_color - Color of head of snake.
      * @description Generates a Snake at a random location, moving right.
      * Player's starting x is in [numCols / 8, numCols / 4)
      * Player's starting y is in [numRows / 8, numRows / 4)
      */
-    constructor(numCols, numRows, color) {
+    constructor(numCols, numRows, color, head_color) {
         /**
          * The locations of the snake's head.
          * @type {Location}
@@ -45,10 +52,15 @@ export default class Snake {
          */
         this.trail = [];
         /**
-         * The assumed color of the whole snake, based on first segment.
+         * The color of the trail of the snake.
          * @type {string}
          */
         this.color = color;
+        /**
+         * The color of the head of the snake.
+         * @type {string}
+         */
+        this.head_color = head_color;
         /**
          * The x velocity of the snake head.
          * @type {number}
@@ -59,6 +71,8 @@ export default class Snake {
          * @type {number}
          */
         this.dy = 0;
+
+        this.#sum_of_prev_lengths = 0;
     }
 
     /**
@@ -183,5 +197,28 @@ export default class Snake {
      */
     hitSelf() {
         return this.isTrailAt(this.head);
+    }
+
+    /**
+     * "Upgrades" the snake to the next level, changing color and reseting
+     * the trail. The position and velocity of the snake head are unchanged.
+     *
+     * @param {string} color - New color for the snake to take on.
+     * @param {string} head_color - New color for the head of the snake.
+     */
+    upgrade(color, head_color) {
+        this.#sum_of_prev_lengths += this.length() + 1;
+        this.trail = [];
+        this.color = color;
+        this.head_color = head_color;
+    }
+
+    /**
+     * Returns the true score of the game, accounting for upgrades
+     *
+     * @returns {number} - Total score of the game.
+     */
+    score() {
+        return this.#sum_of_prev_lengths + this.length();
     }
 }

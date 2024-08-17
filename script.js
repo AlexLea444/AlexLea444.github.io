@@ -26,7 +26,7 @@ const shareButton = document.getElementById('shareButton');
 
 // Constants for grid size and dimensions
 /** @type {number} */
-const gridSize = 40; // Size of each grid cell
+const gridSize = 70; // Size of each grid cell
 /** @type {number} */
 const numRows = gameCanvas.height / gridSize;
 /** @type {number} */
@@ -39,7 +39,7 @@ const gridBounds = {
     bottom: numRows - 1,
 };
 /** @type {number} */
-const maxScore = numRows * numCols;
+//const maxScore = numRows * numCols;
 
 // Helpful type definitions for interacting with positions as objects
 /**
@@ -58,7 +58,7 @@ if (highscore === null) {
 
 // Initialize game objects
 /** @type {Snake} */
-let snake = new Snake(numCols, numRows, 'green');
+let snake = new Snake(numCols, numRows, 'green', 'DarkGreen');
 /** @type {Apple} */
 let apple = new Apple(numCols, numRows);
 
@@ -69,8 +69,34 @@ let inputs = new InputsList();
 // Define constants for game flow
 /** @constant {number} */
 const SWIPE_THRESHOLD = 30;
-/** @constant {number} */
-const FRAME_PERIOD_MS = 200;
+
+// Define pseudo-constant for speed (changes for different levels)
+/** @type {number} */
+let frame_period_ms = 200;
+
+// Queue of colors for level upgrades
+let colors = ['LightCoral', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
+                'MediumPurple', 'Cornsilk'];
+let head_colors = ['FireBrick', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
+                    'Purple', 'Black'];
+
+function next_color() {
+    let ret = colors.shift();
+    if (ret == undefined) {
+        return 'green';
+    } else {
+        return ret;
+    }
+}
+
+function next_head_color() {
+    let ret = head_colors.shift();
+    if (ret == undefined) {
+        return 'DarkGreen';
+    } else {
+        return ret;
+    }
+}
 
 // Define constants for collision states
 /** @constant {string} */
@@ -125,7 +151,7 @@ function updateGameState(newState) {
             pauseButton.style.opacity = 0.5;
             pauseButton.textContent = "PAUSE";
             // Set an interval for the movePlayer function (every _ ms)
-            moveIntervalId = setInterval(updateSnake, FRAME_PERIOD_MS);
+            moveIntervalId = setInterval(updateSnake, frame_period_ms);
 
             break;
         case GAME_STATE_PAUSED:
@@ -141,18 +167,18 @@ function updateGameState(newState) {
         case GAME_STATE_GAME_OVER:
             clearInterval(moveIntervalId);
             infoOverlay.style.display = "flex";
-            if (score() > highscore) {
+            if (snake.score() > highscore) {
                 // Celebrate
                 gameInfo.innerHTML = `Game Over<br>New high score!`;
-            } else if (score() == maxScore){
+            } /*else if (snake.score() == maxScore){
                 // Celebrate
                 gameInfo.innerHTML = `Game Over<br>You win!`;
-            } else {
+            } */else {
                 // You suck (jk ily)
                 gameInfo.innerHTML = `Game Over<br>You hit ${collisionState}`;
             }
             gridInfo.innerHTML = gridToHTML();
-            finalScore.textContent = `Final Score: ${score()}`;
+            finalScore.textContent = `Final Score: ${snake.score()}`;
             shareButton.style.display = "inline-block";
             startButton.textContent = "Restart";
 
@@ -200,7 +226,7 @@ function gridToText() {
                             .replaceAll('&#11036;', "⬜")
                             .replaceAll('&#127822;', "🍎")
                             .replaceAll('&#128165;', "💥")
-                            .concat(`\nscore: ${score()}`);
+                            .concat(`\nscore: ${snake.score()}`);
 
 }
 
@@ -220,7 +246,7 @@ function draw() {
     // Draw snake
     drawSnake();
 
-    document.getElementById('score').textContent = `Score: ${score()}`;
+    document.getElementById('score').textContent = `Score: ${snake.score()}`;
 }
 
 /**
@@ -318,7 +344,7 @@ function drawBetweenSegments(prev, curr) {
  */
 function drawSnake() {
     // First, draw every segment of the snake with a dark square around it
-    drawSegment(snake.head, 'DarkGreen');
+    drawSegment(snake.head, snake.head_color);
     console.log(`HEAD: {${snake.head.x}, ${snake.head.y}}`);
 
     for (let segment of snake) {
@@ -367,10 +393,10 @@ function updateSnake() {
         collisionState = COLLISION_STATE_TAIL;
     } else if (snake.head.x === apple.x && snake.head.y === apple.y) {
         // Check if the snake has hit an apple
-        if (score() == numRows * numCols - 1) {
+        if (snake.length() == numRows * numCols - 1) {
             // Check if the user has won
-            snake.grow();
-            updateGameState(GAME_STATE_GAME_OVER);
+            snake.upgrade(next_color(), next_head_color())
+            frame_period_ms -= 10;
         } else {
             snake.grow();
             apple.moveNotTo(snake);
@@ -384,11 +410,12 @@ function updateSnake() {
 }
 
 /**
+ * Replaced by snake.score()
  * @returns {number} The score of the game, same as the length of the trial.
  */
-function score() {
+/* function score() {
     return snake.length();
-}
+} */
 
 /**
  * Reset game objects, input logic, and game states.
@@ -396,9 +423,14 @@ function score() {
  */
 function resetGame() {
     collisionState = COLLISION_STATE_NONE;
-    highscore = Math.max(highscore, score());
+    highscore = Math.max(highscore, snake.score());
     localStorage.setItem('highscore', highscore);
-    snake = new Snake(numCols, numRows, 'green');
+    snake = new Snake(numCols, numRows, 'green', 'DarkGreen');
+    colors = ['LightCoral', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
+                'MediumPurple', 'Cornsilk'];
+    head_colors = ['FireBrick', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
+                    'Purple', 'Black'];
+    frame_period_ms = 200;
     apple.moveNotTo(snake);
     resetTouches();
     draw();
