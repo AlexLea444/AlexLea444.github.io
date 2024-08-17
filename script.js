@@ -26,7 +26,7 @@ const shareButton = document.getElementById('shareButton');
 
 // Constants for grid size and dimensions
 /** @type {number} */
-const gridSize = 70; // Size of each grid cell
+const gridSize = 63; // Size of each grid cell
 /** @type {number} */
 const numRows = gameCanvas.height / gridSize;
 /** @type {number} */
