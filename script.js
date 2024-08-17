@@ -422,6 +422,7 @@ function updateSnake() {
  * Update local high score if necessary.
  */
 function resetGame() {
+    inputs.clear();
     collisionState = COLLISION_STATE_NONE;
     highscore = Math.max(highscore, snake.score());
     localStorage.setItem('highscore', highscore);
