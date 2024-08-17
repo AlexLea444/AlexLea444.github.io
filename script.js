@@ -77,7 +77,7 @@ let frame_period_ms = 190;
 // Queue of colors for level upgrades
 let colors = ['Salmon', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
                 'MediumPurple', 'Cornsilk'];
-let head_colors = ['LightCoral', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
+let head_colors = ['Tomato', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
                     'Purple', 'Black'];
 
 function next_color() {
@@ -431,7 +431,7 @@ function resetGame() {
     snake = new Snake(numCols, numRows, 'green', 'DarkGreen');
     colors = ['Salmon', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
                 'MediumPurple', 'Cornsilk'];
-    head_colors = ['LightCoral', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
+    head_colors = ['Tomato', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
                     'Purple', 'Black'];
     frame_period_ms = 190;
     apple.moveNotTo(snake);
