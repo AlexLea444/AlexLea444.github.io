@@ -75,9 +75,9 @@ const SWIPE_THRESHOLD = 30;
 let frame_period_ms = 200;
 
 // Queue of colors for level upgrades
-let colors = ['LightCoral', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
+let colors = ['Salmon', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
                 'MediumPurple', 'Cornsilk'];
-let head_colors = ['FireBrick', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
+let head_colors = ['LightCoral', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
                     'Purple', 'Black'];
 
 function next_color() {
@@ -134,6 +134,10 @@ updateGameState(GAME_STATE_START);
  * @param {string} newState - The new game state to update to.
  */
 function updateGameState(newState) {
+    if (highscore < snake.score()) {
+        highscore = snake.score();
+        localStorage.setItem('highscore', highscore);
+    }
     switch (newState) {
         case GAME_STATE_START:
             infoOverlay.style.display = "flex";
@@ -424,12 +428,10 @@ function updateSnake() {
 function resetGame() {
     inputs.clear();
     collisionState = COLLISION_STATE_NONE;
-    highscore = Math.max(highscore, snake.score());
-    localStorage.setItem('highscore', highscore);
     snake = new Snake(numCols, numRows, 'green', 'DarkGreen');
-    colors = ['LightCoral', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
+    colors = ['Salmon', 'Orange', 'LightYellow', 'LawnGreen', 'Blue',
                 'MediumPurple', 'Cornsilk'];
-    head_colors = ['FireBrick', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
+    head_colors = ['LightCoral', 'DarkOrange', 'Yellow', 'Lime', 'DarkBlue',
                     'Purple', 'Black'];
     frame_period_ms = 200;
     apple.moveNotTo(snake);
