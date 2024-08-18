@@ -36,7 +36,8 @@ class InputsList {
      * @param {string} direction - The direction to add.
      */
     enqueue(direction) {
-        if (validInputs.indexOf(direction) !== -1) {
+        if (validInputs.indexOf(direction) !== -1 &&
+            this.#items[this.#items.length - 1] !== direction) {
             this.#items.push(direction);
         }
     }
