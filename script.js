@@ -26,11 +26,11 @@ const shareButton = document.getElementById('shareButton');
 
 // Constants for grid size and dimensions
 /** @type {number} */
-const gridSize = 63; // Size of each grid cell
+const cellSize = 63; // Size of each grid cell
 /** @type {number} */
-const numRows = gameCanvas.height / gridSize;
+const numRows = gameCanvas.height / cellSize;
 /** @type {number} */
-const numCols = gameCanvas.width / gridSize;
+const numCols = gameCanvas.width / cellSize;
 /** @type {{left: number, right: number, top: number, bottom: number}} */
 const gridBounds = {
     left: 0,
@@ -38,8 +38,6 @@ const gridBounds = {
     top: 0,
     bottom: numRows - 1,
 };
-/** @type {number} */
-//const maxScore = numRows * numCols;
 
 // Helpful type definitions for interacting with positions as objects
 /**
@@ -172,13 +170,8 @@ function updateGameState(newState) {
             clearInterval(moveIntervalId);
             infoOverlay.style.display = "flex";
             if (snake.score() > highscore) {
-                // Celebrate
                 gameInfo.innerHTML = `Game Over<br>New high score!`;
-            } /*else if (snake.score() == maxScore){
-                // Celebrate
-                gameInfo.innerHTML = `Game Over<br>You win!`;
-            } */else {
-                // You suck (jk ily)
+            } else {
                 gameInfo.innerHTML = `Game Over<br>You hit ${collisionState}`;
             }
             gridInfo.innerHTML = gridToHTML();
@@ -265,7 +258,7 @@ function draw() {
  */
 function drawSquare(square) {
     ctx.fillStyle = square.color;
-    ctx.fillRect(square.x * gridSize, square.y * gridSize, gridSize, gridSize);
+    ctx.fillRect(square.x * cellSize, square.y * cellSize, cellSize, cellSize);
 }
 
 /**
@@ -277,14 +270,14 @@ function drawGrid() {
   
     // Draw vertical lines
     for (let i = 0; i <= numCols; i++) {
-        ctx.moveTo(i * gridSize, 0);
-        ctx.lineTo(i * gridSize, gameCanvas.height);
+        ctx.moveTo(i * cellSize, 0);
+        ctx.lineTo(i * cellSize, gameCanvas.height);
     }
   
     // Draw horizontal lines
     for (let j = 0; j <= numRows; j++) {
-        ctx.moveTo(0, j * gridSize);
-        ctx.lineTo(gameCanvas.width, j * gridSize);
+        ctx.moveTo(0, j * cellSize);
+        ctx.lineTo(gameCanvas.width, j * cellSize);
     }
   
     ctx.stroke();
@@ -301,12 +294,12 @@ function drawSegment(segment, color) {
 
     drawSquare({x: segment.x, y: segment.y, color: color});
 
-    ctx.moveTo(segment.x * gridSize, segment.y * gridSize);
+    ctx.moveTo(segment.x * cellSize, segment.y * cellSize);
 
-    ctx.lineTo((segment.x + 1) * gridSize, segment.y * gridSize);
-    ctx.lineTo((segment.x + 1) * gridSize, (segment.y + 1) * gridSize);
-    ctx.lineTo(segment.x * gridSize, (segment.y + 1) * gridSize);
-    ctx.lineTo(segment.x * gridSize, segment.y * gridSize);
+    ctx.lineTo((segment.x + 1) * cellSize, segment.y * cellSize);
+    ctx.lineTo((segment.x + 1) * cellSize, (segment.y + 1) * cellSize);
+    ctx.lineTo(segment.x * cellSize, (segment.y + 1) * cellSize);
+    ctx.lineTo(segment.x * cellSize, segment.y * cellSize);
 
     ctx.stroke();
 }
@@ -326,20 +319,20 @@ function drawBetweenSegments(prev, curr) {
 
     if (curr.x === prev.x - 1) {
         // current segment is left of previous segment
-        ctx.moveTo((curr.x + 1) * gridSize, curr.y * gridSize + 1);
-        ctx.lineTo((curr.x + 1) * gridSize, (curr.y + 1) * gridSize - 1);
+        ctx.moveTo((curr.x + 1) * cellSize, curr.y * cellSize + 1);
+        ctx.lineTo((curr.x + 1) * cellSize, (curr.y + 1) * cellSize - 1);
     } else if (curr.x === prev.x + 1) {
         // current segment is right of previous segment
-        ctx.moveTo(curr.x * gridSize, curr.y * gridSize + 1);
-        ctx.lineTo(curr.x * gridSize, (curr.y + 1) * gridSize - 1);
+        ctx.moveTo(curr.x * cellSize, curr.y * cellSize + 1);
+        ctx.lineTo(curr.x * cellSize, (curr.y + 1) * cellSize - 1);
     } else if (curr.y === prev.y - 1) {
         // current segment is on top of previous segment
-        ctx.moveTo(curr.x * gridSize + 1, (curr.y + 1) * gridSize);
-        ctx.lineTo((curr.x + 1) * gridSize - 1, (curr.y + 1) * gridSize);
+        ctx.moveTo(curr.x * cellSize + 1, (curr.y + 1) * cellSize);
+        ctx.lineTo((curr.x + 1) * cellSize - 1, (curr.y + 1) * cellSize);
     } else if (curr.y === prev.y + 1) {
         // current segment is below previous segment
-        ctx.moveTo(curr.x * gridSize + 1, curr.y * gridSize);
-        ctx.lineTo((curr.x + 1) * gridSize - 1, curr.y * gridSize);
+        ctx.moveTo(curr.x * cellSize + 1, curr.y * cellSize);
+        ctx.lineTo((curr.x + 1) * cellSize - 1, curr.y * cellSize);
     }
 }
 
@@ -349,10 +342,8 @@ function drawBetweenSegments(prev, curr) {
 function drawSnake() {
     // First, draw every segment of the snake with a dark square around it
     drawSegment(snake.head, snake.head_color);
-    console.log(`HEAD: {${snake.head.x}, ${snake.head.y}}`);
 
     for (let segment of snake) {
-        console.log(`{${segment.x}, ${segment.y}}`);
         drawSegment(segment, snake.color);
     }
 
@@ -513,23 +504,27 @@ document.addEventListener('keydown', event => {
             event.preventDefault();
             togglePause();
             return;
-        case 'w':
         case 'ArrowUp':
+        case 'k':
+        case 'w':
             event.preventDefault();
             newDirection = 'up';
             break;
-        case 's':
         case 'ArrowDown':
+        case 'j':
+        case 's':
             event.preventDefault();
             newDirection = 'down';
             break;
-        case 'a':
         case 'ArrowLeft':
+        case 'h':
+        case 'a':
             event.preventDefault();
             newDirection = 'left';
             break;
-        case 'd':
         case 'ArrowRight':
+        case 'l':
+        case 'd':
             event.preventDefault();
             newDirection = 'right';
             break;
